@@ -7,7 +7,7 @@ import (
 	"google.golang.org/api/gmail/v1"
 )
 
-func Watch() {
+func Watch() uint64 {
 	client := getClient()
 
 	srv, err := gmail.New(client)
@@ -21,8 +21,6 @@ func Watch() {
 	if err != nil {
 		log.Fatalf("Unable to retrieve labels: %v", err)
 	}
-	fmt.Println("Expiration:")
-	fmt.Printf("%s\n", r.Expiration)
-	fmt.Println("History:")
-	fmt.Printf("%s\n", r.HistoryId)
+	fmt.Printf("Watch successful, expiration: %d\n", r.Expiration)
+	return r.HistoryId
 }
