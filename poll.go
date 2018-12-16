@@ -1,8 +1,8 @@
-// Sample pubsub-quickstart creates a Google Cloud Pub/Sub topic.
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -13,8 +13,13 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
+type message struct {
+	EmailAddress string `json:"emailAddress"`
+	HistoryId    uint64 `json:"historyId"`
+}
+
 func main() {
-	gmail.Watch()
+	startHistoryId := gmail.Watch()
 	ctx := context.Background()
 
 	// Sets your Google Cloud Platform project ID.
@@ -37,8 +42,10 @@ func main() {
 	cctx, _ := context.WithCancel(ctx)
 	errr := sub.Receive(cctx, func(ctx context.Context, msg *pubsub.Message) {
 		msg.Ack()
-		fmt.Printf("Got message: %q\n", string(msg.Data))
-		fmt.Printf("ID: %q\n", string(msg.ID))
+		var mssg message
+		_ = json.Unmarshal(msg.Data, &mssg)
+		fmt.Printf("Got message: %q\n", mssg)
+		gmail.GetMsg(startHistoryId, mssg.HistoryId)
 		mu.Lock()
 		defer mu.Unlock()
 	})
