@@ -4,52 +4,51 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 
-	"github.com/kruszczynski/auto-pocketer/gmail"
-	"google.golang.org/api/option"
-
 	"cloud.google.com/go/pubsub"
+	"github.com/kruszczynski/auto-pocketer/gmail"
+	"github.com/kruszczynski/auto-pocketer/googlepubsub"
+	"mvdan.cc/xurls"
 )
 
-type message struct {
-	EmailAddress string `json:"emailAddress"`
-	HistoryId    uint64 `json:"historyId"`
-}
-
 func main() {
-	startHistoryId := gmail.Watch()
-	ctx := context.Background()
+	gmailClient := gmail.GetClient()
+	startHistoryId := gmailClient.Watch()
 
-	// Sets your Google Cloud Platform project ID.
-	projectID := "auto-pocketer"
-
-	// Creates a client.
-	credentialsPath := "secrets/pub_sub_credentials.json"
-	client, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsFile(credentialsPath))
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
-	// Sets the name for the new topic.
-	// topicName := "incoming-emails"
-	subName := "auto-pocketer-subscription"
-
-	// Consume 10 messages.
+	sub := googlepubsub.GetSubscription()
 	var mu sync.Mutex
-	sub := client.Subscription(subName)
-	cctx, _ := context.WithCancel(ctx)
-	errr := sub.Receive(cctx, func(ctx context.Context, msg *pubsub.Message) {
-		msg.Ack()
-		var mssg message
-		_ = json.Unmarshal(msg.Data, &mssg)
-		fmt.Printf("Got message: %q\n", mssg)
-		gmail.GetMsg(startHistoryId, mssg.HistoryId)
+	errr := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+		// locks because of startHistoryId
+		// it's not an issue though
 		mu.Lock()
 		defer mu.Unlock()
+
+		msg.Ack()
+
+		var message googlepubsub.Message
+		err := json.Unmarshal(msg.Data, &message)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Got message: %q\n", message)
+		messageIds := gmailClient.ListMessageIds(startHistoryId, message.HistoryId)
+		fmt.Printf("%d new messages received\n", len(messageIds))
+		startHistoryId = message.HistoryId
+
+		processedMessages := gmailClient.ProcessMessages(messageIds)
+		for _, pm := range processedMessages {
+			findLink(pm)
+		}
 	})
+
 	if errr != nil {
 		panic(errr)
 	}
+}
+
+func findLink(msg *gmail.ProcessedMessage) string {
+	link := xurls.Strict().FindString(msg.Body)
+	fmt.Println(link)
+	return link
 }
