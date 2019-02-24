@@ -1,6 +1,9 @@
-FROM golang:1.11.5
+FROM golang:1.11.5 AS build-env
 
-WORKDIR /go/src/github.com/kruszczynski/auto-pocketer
+WORKDIR /app
 
-COPY . /go/src/github.com/kruszczynski/auto-pocketer
-RUN go get -u
+COPY go.mod go.sum /app/
+RUN go get -u -v ./...
+
+COPY . /app
+RUN go build .
