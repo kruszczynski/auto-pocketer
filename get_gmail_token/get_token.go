@@ -1,14 +1,28 @@
-package gmail
+package main
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	gmail "google.golang.org/api/gmail/v1"
 )
+
+func main() {
+	b, err := ioutil.ReadFile("../secrets/oauth_credentials.json")
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope, gmail.GmailModifyScope)
+	GetTokenFromWeb(config)
+}
 
 // Request a token from the web, then returns the retrieved token.
 func GetTokenFromWeb(config *oauth2.Config) {
@@ -25,7 +39,7 @@ func GetTokenFromWeb(config *oauth2.Config) {
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
-	saveToken("secrets/token.json", tok)
+	saveToken("../secrets/token.json", tok)
 }
 
 // Saves a token to a file path.

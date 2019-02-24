@@ -33,7 +33,7 @@ func GetClient() *Client {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope)
+	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope, gmail.GmailModifyScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
@@ -86,6 +86,15 @@ func (client *Client) ProcessMessages(messageIds []string) (ret []*ProcessedMess
 		ret = append(ret, client.fetchMessage(msgId))
 	}
 	return
+}
+
+func (client *Client) Archive(messageId string) {
+	fmt.Printf("Archiving message %s\n", messageId)
+	request := &gmail.ModifyMessageRequest{RemoveLabelIds: []string{"INBOX"}}
+	_, err := client.service.Users.Messages.Modify(User, messageId, request).Do()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (client *Client) fetchMessage(messageId string) *ProcessedMessage {

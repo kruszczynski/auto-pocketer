@@ -40,6 +40,7 @@ func main() {
 			link := pm.FindLink()
 			if link != "" {
 				pocketClient.Add(link)
+				gmailClient.Archive(pm.Id)
 			}
 		}
 	})
