@@ -15,13 +15,12 @@ import (
 func main() {
 	gmailClient := gmail.GetClient()
 	pocketClient := pocket.GetClient()
-	startHistoryId := gmailClient.Watch()
+	gmailClient.Watch()
 
 	sub := googlepubsub.GetSubscription()
 	var mu sync.Mutex
 	errr := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
-		// locks because of startHistoryId
-		// it's not an issue though
+		// locks because of startHistoryId is shared
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -32,13 +31,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Got message: %q\n", message)
-		if message.HistoryId < startHistoryId {
-			return
-		}
-		messageIds, lastHistoryId := gmailClient.ListMessageIds(startHistoryId, message.HistoryId)
+		messageIds := gmailClient.ListMessageIds(message.HistoryId)
 		fmt.Printf("%d new messages received\n", len(messageIds))
-		startHistoryId = lastHistoryId
 
 		processedMessages := gmailClient.ProcessMessages(messageIds)
 		filteredMessages := filterMessages(processedMessages)

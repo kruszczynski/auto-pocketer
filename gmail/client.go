@@ -17,8 +17,9 @@ import (
 )
 
 type Client struct {
-	service *gmail.Service
-	regexp  *regexp.Regexp
+	service       *gmail.Service
+	regexp        *regexp.Regexp
+	lastHistoryId uint64
 }
 
 const User = "me"
@@ -54,9 +55,12 @@ func GetClient() *Client {
 	return &Client{service: srv, regexp: regexp.MustCompile(EmailFinder)}
 }
 
-func (client Client) ListMessageIds(startHistoryId uint64, historyId uint64) ([]string, uint64) {
+func (client *Client) ListMessageIds(historyId uint64) []string {
+	if historyId < client.lastHistoryId {
+		return []string{}
+	}
 	c := client.service.Users.History.List(User)
-	c.StartHistoryId(startHistoryId)
+	c.StartHistoryId(client.lastHistoryId)
 	r, err := c.Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve labels: %v", err)
@@ -73,17 +77,18 @@ func (client Client) ListMessageIds(startHistoryId uint64, historyId uint64) ([]
 			}
 		}
 	}
-	return ret, lastHistoryId
+	client.lastHistoryId = lastHistoryId
+	return ret
 }
 
-func (client Client) ProcessMessages(messageIds []string) (ret []*ProcessedMessage) {
+func (client *Client) ProcessMessages(messageIds []string) (ret []*ProcessedMessage) {
 	for _, msgId := range messageIds {
 		ret = append(ret, client.fetchMessage(msgId))
 	}
 	return
 }
 
-func (client Client) fetchMessage(messageId string) *ProcessedMessage {
+func (client *Client) fetchMessage(messageId string) *ProcessedMessage {
 	fmt.Printf("Fetching message %s\n", messageId)
 	r, err := client.service.Users.Messages.Get(User, messageId).Do()
 	if err != nil {

@@ -3,16 +3,21 @@ package gmail
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"google.golang.org/api/gmail/v1"
 )
 
-func (client Client) Watch() uint64 {
-	watchRequest := &gmail.WatchRequest{TopicName: "projects/auto-pocketer/topics/incoming-emails", LabelIds: []string{"INBOX"}}
+func (client *Client) Watch() {
+	topicName := os.Getenv("PUBSUB_TOPIC_NAME")
+	watchRequest := &gmail.WatchRequest{TopicName: topicName, LabelIds: []string{"INBOX"}}
 	r, err := client.service.Users.Watch(User, watchRequest).Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve labels: %v", err)
+		log.Fatalf("Unsuccessful watch request: %v", err)
 	}
-	fmt.Printf("Watch successful, expiration: %d\n", r.Expiration)
-	return r.HistoryId
+	fmt.Printf("Watch successful, expiration: %d, historyId: %d\n", r.Expiration, r.HistoryId)
+	if client.lastHistoryId == 0 {
+		fmt.Println("Setting initial history id")
+		client.lastHistoryId = r.HistoryId
+	}
 }
