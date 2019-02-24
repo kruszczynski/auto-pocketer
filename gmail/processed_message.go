@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"mvdan.cc/xurls"
+	xurls "github.com/mvdan/xurls"
 )
 
 var allowedSenders []string
@@ -22,7 +22,7 @@ type ProcessedMessage struct {
 }
 
 func (pMsg ProcessedMessage) FindLink() string {
-	link := xurls.Strict().FindString(pMsg.Body)
+	link := xurls.Strict.FindString(pMsg.Body)
 	if link != "" {
 		fmt.Printf("Found a link: %s\n", link)
 	} else {
