@@ -9,11 +9,12 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/kruszczynski/auto-pocketer/gmail"
 	"github.com/kruszczynski/auto-pocketer/googlepubsub"
-	"mvdan.cc/xurls"
+	"github.com/kruszczynski/auto-pocketer/pocket"
 )
 
 func main() {
 	gmailClient := gmail.GetClient()
+	pocketClient := pocket.GetClient()
 	startHistoryId := gmailClient.Watch()
 
 	sub := googlepubsub.GetSubscription()
@@ -32,13 +33,20 @@ func main() {
 			panic(err)
 		}
 		fmt.Printf("Got message: %q\n", message)
-		messageIds := gmailClient.ListMessageIds(startHistoryId, message.HistoryId)
+		if message.HistoryId < startHistoryId {
+			return
+		}
+		messageIds, lastHistoryId := gmailClient.ListMessageIds(startHistoryId, message.HistoryId)
 		fmt.Printf("%d new messages received\n", len(messageIds))
-		startHistoryId = message.HistoryId
+		startHistoryId = lastHistoryId
 
 		processedMessages := gmailClient.ProcessMessages(messageIds)
-		for _, pm := range processedMessages {
-			findLink(pm)
+		filteredMessages := filterMessages(processedMessages)
+		for _, pm := range filteredMessages {
+			link := pm.FindLink()
+			if link != "" {
+				pocketClient.Add(link)
+			}
 		}
 	})
 
@@ -47,8 +55,12 @@ func main() {
 	}
 }
 
-func findLink(msg *gmail.ProcessedMessage) string {
-	link := xurls.Strict().FindString(msg.Body)
-	fmt.Println(link)
-	return link
+func filterMessages(messages []*gmail.ProcessedMessage) (ret []*gmail.ProcessedMessage) {
+	for _, msg := range messages {
+		fmt.Printf("Message sender is: %s\n", msg.From)
+		if msg.AllowedSender() {
+			ret = append(ret, msg)
+		}
+	}
+	return
 }
