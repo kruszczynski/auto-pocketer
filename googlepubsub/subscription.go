@@ -3,15 +3,10 @@ package googlepubsub
 import (
 	"context"
 	"log"
+	"os"
 
 	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
 )
-
-const subName = "auto-pocketer-subscription"
-
-// Sets your Google Cloud Platform project ID.
-const projectID = "auto-pocketer"
 
 type Message struct {
 	EmailAddress string `json:"emailAddress"`
@@ -19,11 +14,12 @@ type Message struct {
 }
 
 func GetSubscription() *pubsub.Subscription {
-	credentialsPath := "secrets/pub_sub_credentials.json"
-	client, err := pubsub.NewClient(context.Background(), projectID, option.WithCredentialsFile(credentialsPath))
+	projectId := os.Getenv("GOOGLE_PROJECT_ID")
+	client, err := pubsub.NewClient(context.Background(), projectId)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 
+	subName := os.Getenv("PUBSUB_SUBSCRIPTION_NAME")
 	return client.Subscription(subName)
 }
