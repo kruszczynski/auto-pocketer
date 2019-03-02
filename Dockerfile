@@ -7,3 +7,4 @@ RUN go get -u -v ./...
 
 COPY . /app
 RUN go build .
+CMD ./auto-pocketer
