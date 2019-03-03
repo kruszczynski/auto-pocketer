@@ -27,7 +27,8 @@ const EmailFinder = "<(.*)>"
 
 // Retrieve a token, saves the token, then returns the generated client.
 func GetClient() *Client {
-	b, err := ioutil.ReadFile("secrets/oauth_credentials.json")
+	oauthSecretPath := os.Getenv("OAUTH_SECRET_PATH")
+	b, err := ioutil.ReadFile(oauthSecretPath)
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
