@@ -42,7 +42,7 @@ func GetClient() *Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
-	tokFile := "secrets/token.json"
+	tokFile := os.Getenv("GMAIL_TOKEN_PATH")
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
 		panic(err)
