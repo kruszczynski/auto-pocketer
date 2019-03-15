@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auto-pocketer-deployment
+  labels:
+    app: auto-pocketer
+spec:
+  selector:
+    matchLabels:
+      app: auto-pocketer
+  template:
+    metadata:
+      labels:
+        app: auto-pocketer
+    spec:
+      containers:
+      - name: auto-pocketer
+        image: kruszczynski/auto-pocketer
+        volumeMounts:
+        - name: autopocketer-secrets
+          mountPath: "/secrets"
+          readOnly: true
+        env:
+        - name: ALLOWED_SENDERS
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: ALLOWED_SENDERS
+        - name: PUBSUB_TOPIC_NAME
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: PUBSUB_TOPIC_NAME
+        - name: PUBSUB_SUBSCRIPTION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: PUBSUB_SUBSCRIPTION_NAME
+        - name: GOOGLE_PROJECT_ID
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: GOOGLE_PROJECT_ID
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: GOOGLE_APPLICATION_CREDENTIALS
+        - name: POCKET_CONSUMER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: POCKET_CONSUMER_KEY
+        - name: POCKET_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: POCKET_ACCESS_TOKEN
+        - name: OAUTH_SECRET_PATH
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: OAUTH_SECRET_PATH
+        - name: GMAIL_TOKEN_PATH
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: GMAIL_TOKEN_PATH
+        - name: PUB_SUB_CREDENTIALS_FILE_PATH
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: PUB_SUB_CREDENTIALS_FILE_PATH
+      volumes:
+      - name: autopocketer-secrets
+        secret:
+          secretName: autopocketer-secrets
