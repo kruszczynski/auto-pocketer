@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	fmt.Println("This is updated version")
 	gmailClient := gmail.GetClient()
 	pocketClient := pocket.GetClient()
 	gmailClient.Watch()
