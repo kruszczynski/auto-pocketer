@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/getsentry/raven-go"
 	"github.com/kruszczynski/auto-pocketer/gmail"
 	"github.com/kruszczynski/auto-pocketer/googlepubsub"
 	"github.com/kruszczynski/auto-pocketer/pocket"
@@ -14,6 +16,7 @@ import (
 
 func main() {
 	fmt.Println("This is updated version")
+	raven.SetDSN(os.Getenv("SENTRY_DSN"))
 	gmailClient := gmail.GetClient()
 	pocketClient := pocket.GetClient()
 	gmailClient.Watch()

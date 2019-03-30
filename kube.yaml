@@ -71,6 +71,11 @@ spec:
             secretKeyRef:
               name: autopocketer-env
               key: PUB_SUB_CREDENTIALS_FILE_PATH
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: autopocketer-env
+              key: SENTRY_DSN
       volumes:
       - name: autopocketer-secrets
         secret:
