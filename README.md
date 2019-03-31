@@ -11,3 +11,4 @@ Automatically puts stuff into pocket
 - `GOOGLE_APPLICATION_CREDENTIALS` - and app creds
 - `POCKET_CONSUMER_KEY` - Pocket consumer key
 - `POCKET_ACCESS_TOKEN` - Pocket access token
+- `SENTRY_DSN` - Error reporting
