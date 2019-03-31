@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/getsentry/raven-go"
@@ -15,11 +16,11 @@ import (
 )
 
 func main() {
-	fmt.Println("This is updated version")
 	raven.SetDSN(os.Getenv("SENTRY_DSN"))
 	gmailClient := gmail.GetClient()
 	pocketClient := pocket.GetClient()
 	gmailClient.Watch()
+	gmailWatchCalledOn := daysSinceBeginning()
 
 	sub := googlepubsub.GetSubscription()
 	var mu sync.Mutex
@@ -27,6 +28,12 @@ func main() {
 		// locks because of startHistoryId is shared
 		mu.Lock()
 		defer mu.Unlock()
+
+		// call watch if more than one day has elapsed
+		if gmailWatchCalledOn < daysSinceBeginning() {
+			gmailClient.Watch()
+			gmailWatchCalledOn = daysSinceBeginning()
+		}
 
 		msg.Ack()
 
@@ -62,4 +69,8 @@ func filterMessages(messages []*gmail.ProcessedMessage) (ret []*gmail.ProcessedM
 		}
 	}
 	return
+}
+
+func daysSinceBeginning() int64 {
+	return time.Now().Unix() / 60 / 60 / 24
 }
