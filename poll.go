@@ -50,13 +50,15 @@ func main() {
 		for _, pm := range filteredMessages {
 			link := pm.FindLink()
 			if link != "" {
-				pocketClient.Add(link)
+				_ = pocketClient.Add(link)
+				// TODO(kruszczynski) report that to Raven
 				gmailClient.Archive(pm.Id)
 			}
 		}
 	})
 
 	if errr != nil {
+		// TODO(kruszczynski) no more panic
 		panic(errr)
 	}
 }
