@@ -24,7 +24,7 @@ func main() {
 
 	sub := googlepubsub.GetSubscription()
 	var mu sync.Mutex
-	errr := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+	err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
 		// locks because of startHistoryId is shared
 		mu.Lock()
 		defer mu.Unlock()
@@ -40,7 +40,8 @@ func main() {
 		var message googlepubsub.Message
 		err := json.Unmarshal(msg.Data, &message)
 		if err != nil {
-			panic(err)
+			raven.CaptureError(err, nil)
+			return
 		}
 		messageIds := gmailClient.ListMessageIds(message.HistoryId)
 		fmt.Printf("%d new messages received\n", len(messageIds))
@@ -50,16 +51,18 @@ func main() {
 		for _, pm := range filteredMessages {
 			link := pm.FindLink()
 			if link != "" {
-				_ = pocketClient.Add(link)
-				// TODO(kruszczynski) report that to Raven
+				err := pocketClient.Add(link)
+				if err != nil {
+					raven.CaptureError(err, nil)
+					return
+				}
 				gmailClient.Archive(pm.Id)
 			}
 		}
 	})
 
-	if errr != nil {
-		// TODO(kruszczynski) no more panic
-		panic(errr)
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 	}
 }
 
