@@ -67,9 +67,13 @@ func main() {
 				err := pocketClient.Add(link)
 				if err != nil {
 					raven.CaptureError(err, nil)
-					return
+					continue
 				}
-				gmailClient.Archive(pm.Id)
+				err = gmailClient.Archive(pm.Id)
+				if err != nil {
+					raven.CaptureError(err, nil)
+					continue
+				}
 			}
 		}
 	})

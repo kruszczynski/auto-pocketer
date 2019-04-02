@@ -97,13 +97,11 @@ func (client *Client) ProcessMessages(messageIds []string) ([]*ProcessedMessage,
 	return ret, nil
 }
 
-func (client *Client) Archive(messageId string) {
+func (client *Client) Archive(messageId string) error {
 	fmt.Printf("Archiving message %s\n", messageId)
 	request := &gmail.ModifyMessageRequest{RemoveLabelIds: []string{"INBOX"}}
 	_, err := client.service.Users.Messages.Modify(User, messageId, request).Do()
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
 
 func (client *Client) fetchMessage(messageId string) (*ProcessedMessage, error) {
