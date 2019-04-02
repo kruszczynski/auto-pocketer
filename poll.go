@@ -55,7 +55,11 @@ func main() {
 		}
 		fmt.Printf("%d new messages received\n", len(messageIds))
 
-		processedMessages := gmailClient.ProcessMessages(messageIds)
+		processedMessages, err := gmailClient.ProcessMessages(messageIds)
+		if err != nil {
+			raven.CaptureError(err, nil)
+			return
+		}
 		filteredMessages := filterMessages(processedMessages)
 		for _, pm := range filteredMessages {
 			link := pm.FindLink()

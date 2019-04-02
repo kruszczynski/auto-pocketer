@@ -30,14 +30,14 @@ func GetClient() (*Client, error) {
 	oauthSecretPath := os.Getenv("OAUTH_SECRET_PATH")
 	b, err := ioutil.ReadFile(oauthSecretPath)
 	if err != nil {
-		log.Printf("Unable to read client secret file: %v", err)
+		log.Printf("Unable to read client secret file: %v\n", err)
 		return nil, err
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope, gmail.GmailModifyScope)
 	if err != nil {
-		log.Printf("Unable to parse client secret file to config: %v", err)
+		log.Printf("Unable to parse client secret file to config: %v\n", err)
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func (client *Client) ListMessageIds(historyId uint64) ([]string, error) {
 	c.StartHistoryId(client.lastHistoryId)
 	r, err := c.Do()
 	if err != nil {
-		log.Printf("Unable to retrieve labels: %v", err)
+		log.Printf("Unable to retrieve labels: %v\n", err)
 		return ret, err
 	}
 	lastHistoryId := historyId
@@ -85,11 +85,16 @@ func (client *Client) ListMessageIds(historyId uint64) ([]string, error) {
 	return ret, nil
 }
 
-func (client *Client) ProcessMessages(messageIds []string) (ret []*ProcessedMessage) {
+func (client *Client) ProcessMessages(messageIds []string) ([]*ProcessedMessage, error) {
+	ret := []*ProcessedMessage{}
 	for _, msgId := range messageIds {
-		ret = append(ret, client.fetchMessage(msgId))
+		fetchedMessage, err := client.fetchMessage(msgId)
+		if err != nil {
+			return ret, err
+		}
+		ret = append(ret, fetchedMessage)
 	}
-	return
+	return ret, nil
 }
 
 func (client *Client) Archive(messageId string) {
@@ -101,11 +106,12 @@ func (client *Client) Archive(messageId string) {
 	}
 }
 
-func (client *Client) fetchMessage(messageId string) *ProcessedMessage {
+func (client *Client) fetchMessage(messageId string) (*ProcessedMessage, error) {
 	fmt.Printf("Fetching message %s\n", messageId)
 	r, err := client.service.Users.Messages.Get(User, messageId).Do()
 	if err != nil {
-		panic(err)
+		log.Println("Unable to fetch messages from Gmail")
+		return nil, err
 	}
 
 	from := ""
@@ -123,7 +129,8 @@ func (client *Client) fetchMessage(messageId string) *ProcessedMessage {
 		if mp.MimeType == "text/plain" {
 			dec, err := base64.URLEncoding.DecodeString(mp.Body.Data)
 			if err != nil {
-				log.Fatalf("Body decoding failed %v", err)
+				log.Printf("Body decoding failed %v\n", err)
+				return nil, err
 			}
 
 			// remove threads
@@ -137,7 +144,7 @@ func (client *Client) fetchMessage(messageId string) *ProcessedMessage {
 			body = strings.Join(filteredBody, "\n")
 		}
 	}
-	return &ProcessedMessage{Id: messageId, From: from, To: to, Body: body}
+	return &ProcessedMessage{Id: messageId, From: from, To: to, Body: body}, nil
 }
 
 // Retrieves a token from a local file.
