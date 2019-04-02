@@ -26,17 +26,19 @@ const User = "me"
 const EmailFinder = "<(.*)>"
 
 // Retrieve a token, saves the token, then returns the generated client.
-func GetClient() *Client {
+func GetClient() (*Client, error) {
 	oauthSecretPath := os.Getenv("OAUTH_SECRET_PATH")
 	b, err := ioutil.ReadFile(oauthSecretPath)
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Printf("Unable to read client secret file: %v", err)
+		return nil, err
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope, gmail.GmailModifyScope)
 	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		log.Printf("Unable to parse client secret file to config: %v", err)
+		return nil, err
 	}
 
 	// The file token.json stores the user's access and refresh tokens, and is
@@ -45,15 +47,15 @@ func GetClient() *Client {
 	tokFile := os.Getenv("GMAIL_TOKEN_PATH")
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	client := config.Client(context.Background(), tok)
 	srv, err := gmail.New(client)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &Client{service: srv, regexp: regexp.MustCompile(EmailFinder)}
+	return &Client{service: srv, regexp: regexp.MustCompile(EmailFinder)}, nil
 }
 
 func (client *Client) ListMessageIds(historyId uint64) []string {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -17,14 +18,18 @@ import (
 
 func main() {
 	raven.SetDSN(os.Getenv("SENTRY_DSN"))
-	gmailClient := gmail.GetClient()
+	gmailClient, err := gmail.GetClient()
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		log.Panic(err)
+	}
 	pocketClient := pocket.GetClient()
 	gmailClient.Watch()
 	gmailWatchCalledOn := daysSinceBeginning()
 
 	sub := googlepubsub.GetSubscription()
 	var mu sync.Mutex
-	err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
 		// locks because of startHistoryId is shared
 		mu.Lock()
 		defer mu.Unlock()
@@ -43,7 +48,7 @@ func main() {
 			raven.CaptureError(err, nil)
 			return
 		}
-		messageIds := gmailClient.ListMessageIds(message.HistoryId)
+		messageIds, err := gmailClient.ListMessageIds(message.HistoryId)
 		fmt.Printf("%d new messages received\n", len(messageIds))
 
 		processedMessages := gmailClient.ProcessMessages(messageIds)
