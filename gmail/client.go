@@ -58,17 +58,18 @@ func GetClient() (*Client, error) {
 	return &Client{service: srv, regexp: regexp.MustCompile(EmailFinder)}, nil
 }
 
-func (client *Client) ListMessageIds(historyId uint64) []string {
+func (client *Client) ListMessageIds(historyId uint64) ([]string, error) {
+	ret := []string{}
 	if historyId < client.lastHistoryId {
-		return []string{}
+		return ret, nil
 	}
 	c := client.service.Users.History.List(User)
 	c.StartHistoryId(client.lastHistoryId)
 	r, err := c.Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve labels: %v", err)
+		log.Printf("Unable to retrieve labels: %v", err)
+		return ret, err
 	}
-	ret := []string{}
 	lastHistoryId := historyId
 	for _, h := range r.History {
 		if h.Id > lastHistoryId {
@@ -81,7 +82,7 @@ func (client *Client) ListMessageIds(historyId uint64) []string {
 		}
 	}
 	client.lastHistoryId = lastHistoryId
-	return ret
+	return ret, nil
 }
 
 func (client *Client) ProcessMessages(messageIds []string) (ret []*ProcessedMessage) {

@@ -49,6 +49,10 @@ func main() {
 			return
 		}
 		messageIds, err := gmailClient.ListMessageIds(message.HistoryId)
+		if err != nil {
+			raven.CaptureError(err, nil)
+			return
+		}
 		fmt.Printf("%d new messages received\n", len(messageIds))
 
 		processedMessages := gmailClient.ProcessMessages(messageIds)
