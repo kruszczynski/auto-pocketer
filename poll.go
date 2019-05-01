@@ -27,7 +27,12 @@ func main() {
 	gmailClient.Watch()
 	gmailWatchCalledOn := daysSinceBeginning()
 
-	sub := googlepubsub.GetSubscription()
+	pubsubClient := googlepubsub.GetClient()
+	sub, err := pubsubClient.GetSubscription()
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		log.Panic(err)
+	}
 	var mu sync.Mutex
 	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
 		// locks because of startHistoryId is shared

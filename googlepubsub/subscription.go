@@ -2,7 +2,6 @@ package googlepubsub
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"cloud.google.com/go/pubsub"
@@ -14,14 +13,25 @@ type Message struct {
 	HistoryId    uint64 `json:"historyId"`
 }
 
-func GetSubscription() *pubsub.Subscription {
-	credentialsPath := os.Getenv("PUB_SUB_CREDENTIALS_FILE_PATH")
-	projectId := os.Getenv("GOOGLE_PROJECT_ID")
-	client, err := pubsub.NewClient(context.Background(), projectId, option.WithCredentialsFile(credentialsPath))
+type Client struct {
+	CredentialsPath  string
+	ProjectID        string
+	SubscriptionName string
+}
+
+func GetClient() *Client {
+	return &Client{
+		CredentialsPath:  os.Getenv("PUB_SUB_CREDENTIALS_FILE_PATH"),
+		ProjectID:        os.Getenv("GOOGLE_PROJECT_ID"),
+		SubscriptionName: os.Getenv("PUBSUB_SUBSCRIPTION_NAME"),
+	}
+}
+
+func (c *Client) GetSubscription() (*pubsub.Subscription, error) {
+	client, err := pubsub.NewClient(context.Background(), c.ProjectID, option.WithCredentialsFile(c.CredentialsPath))
 	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+		return nil, err
 	}
 
-	subName := os.Getenv("PUBSUB_SUBSCRIPTION_NAME")
-	return client.Subscription(subName)
+	return client.Subscription(c.SubscriptionName), nil
 }
