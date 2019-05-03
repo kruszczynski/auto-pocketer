@@ -8,12 +8,6 @@ import (
 	xurls "github.com/mvdan/xurls"
 )
 
-var allowedSenders []string
-
-func init() {
-	allowedSenders = strings.Split(os.Getenv("ALLOWED_SENDERS"), ",")
-}
-
 type ProcessedMessage struct {
 	Id   string
 	From string
@@ -32,6 +26,7 @@ func (pMsg ProcessedMessage) FindLink() string {
 }
 
 func (pMsg ProcessedMessage) AllowedSender() bool {
+	allowedSenders := strings.Split(os.Getenv("ALLOWED_SENDERS"), ",")
 	for _, sender := range allowedSenders {
 		if sender == pMsg.From {
 			return true
