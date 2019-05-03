@@ -20,6 +20,7 @@ type Client struct {
 	service       *gmail.Service
 	regexp        *regexp.Regexp
 	lastHistoryId uint64
+	watch         func(string, *gmail.WatchRequest) *gmail.UsersWatchCall
 }
 
 const User = "me"
@@ -55,7 +56,11 @@ func GetClient() (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{service: srv, regexp: regexp.MustCompile(EmailFinder)}, nil
+	return &Client{
+		service: srv,
+		regexp:  regexp.MustCompile(EmailFinder),
+		watch:   srv.Users.Watch,
+	}, nil
 }
 
 func (client *Client) ListMessageIds(historyId uint64) ([]string, error) {

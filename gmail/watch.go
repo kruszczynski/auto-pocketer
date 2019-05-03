@@ -11,7 +11,7 @@ import (
 func (client *Client) Watch() {
 	topicName := os.Getenv("PUBSUB_TOPIC_NAME")
 	watchRequest := &gmail.WatchRequest{TopicName: topicName, LabelIds: []string{"INBOX"}}
-	r, err := client.service.Users.Watch(User, watchRequest).Do()
+	r, err := client.watch(User, watchRequest).Do()
 	if err != nil {
 		log.Fatalf("Unsuccessful watch request: %v", err)
 	}
