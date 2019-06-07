@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auto-pocketer
-        image: kruszczynski/auto-pocketer
+        image: kruszczynski/auto-pocketer:0.1.0
         volumeMounts:
         - name: autopocketer-secrets
           mountPath: "/secrets"
