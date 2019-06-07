@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: golang:1.11.10
+    steps:
+      - checkout
+      - run:
+          command: go test ./...
