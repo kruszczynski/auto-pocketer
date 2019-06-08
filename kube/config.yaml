@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: "bartek"
+  cluster:
+    api-version: v1
+
+users:
+- name: "u-9xsht"
+
+contexts:
+- name: "bartek"
+  context:
+    user: "u-9xsht"
+    cluster: "bartek"
+
+current-context: "bartek"
