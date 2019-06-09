@@ -1,4 +1,5 @@
 kube.yaml
 .circleci
 README.md
+CHANGELOG.md
 secrets
