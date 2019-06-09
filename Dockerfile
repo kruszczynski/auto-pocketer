@@ -10,4 +10,4 @@ RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' .
 FROM scratch
 WORKDIR /app
 COPY --from=build-env /app/auto-pocketer .
-CMD ./auto-pocketer
+CMD ["./auto-pocketer"]

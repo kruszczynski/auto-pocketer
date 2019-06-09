@@ -1,5 +1,7 @@
-kube.yaml
 .circleci
+.git
+kube.yaml
 README.md
 CHANGELOG.md
 secrets
+Dockerfile
