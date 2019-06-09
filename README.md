@@ -12,3 +12,10 @@ Automatically puts stuff into pocket
 - `POCKET_CONSUMER_KEY` - Pocket consumer key
 - `POCKET_ACCESS_TOKEN` - Pocket access token
 - `SENTRY_DSN` - Error reporting
+
+## Releasing
+
+- Create a pull request
+- Merge it
+- Bump the tag
+- :robot: :robot: :robot: take over - build the image and update the K8S deployment
