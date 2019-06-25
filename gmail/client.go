@@ -21,6 +21,7 @@ type Client struct {
 	regexp        *regexp.Regexp
 	lastHistoryId uint64
 	watch         func(string, *gmail.WatchRequest) *gmail.UsersWatchCall
+	stop          func(string) *gmail.UsersStopCall
 }
 
 const User = "me"
@@ -60,6 +61,7 @@ func GetClient() (*Client, error) {
 		service: srv,
 		regexp:  regexp.MustCompile(EmailFinder),
 		watch:   srv.Users.Watch,
+		stop:    srv.Users.Stop,
 	}, nil
 }
 

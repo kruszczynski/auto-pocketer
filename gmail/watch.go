@@ -21,3 +21,10 @@ func (client *Client) Watch() {
 		client.lastHistoryId = r.HistoryId
 	}
 }
+
+func (client *Client) Stop() {
+	err := client.stop(User).Do()
+	if err != nil {
+		log.Fatalf("Unsuccessful stop request: %v", err)
+	}
+}
