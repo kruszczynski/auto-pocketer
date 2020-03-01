@@ -2,9 +2,8 @@ FROM golang:1.14.0 AS build-env
 
 WORKDIR /app
 
-COPY go.mod go.sum /app/
-RUN go get .
 COPY . /app
+RUN go get .
 RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' .
 
 FROM alpine:3.9.4
