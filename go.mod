@@ -1,5 +1,7 @@
 module github.com/kruszczynski/auto-pocketer
 
+go 1.14
+
 require (
 	cloud.google.com/go v0.36.0
 	github.com/certifi/gocertifi v0.0.0-20190105021004-abcd57078448 // indirect
